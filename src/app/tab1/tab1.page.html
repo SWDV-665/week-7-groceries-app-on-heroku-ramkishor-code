@@ -15,13 +15,21 @@
 
   <!-- <app-explore-container name="Grocery page"></app-explore-container> -->
   <ion-list>
-    <ion-item-sliding *ngFor="let item of items">
+    <ion-item-sliding *ngFor="let item of items; let i = index">
       <ion-item>
         <h2>{{item.name}}</h2>
         <p>({{item.quantity}})</p>
       </ion-item>
       <ion-item-options>
-        <button (click)="removeItem(item)" ion-button color="secondary" icon-start>
+        <button (click)="shareItem(item, i)" ion-button color="light" icon-start>
+          <ion-icon name="share"></ion-icon>
+          Share
+        </button>
+        <button (click)="editItem(item, i)" ion-button color="primary" icon-start>
+          <ion-icon name="create"></ion-icon>
+          Edit
+        </button>
+        <button (click)="removeItem(item,i)" ion-button color="secondary" icon-start>
           <ion-icon name="trash"></ion-icon>
           Remove item
         </button>

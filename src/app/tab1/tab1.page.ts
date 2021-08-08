@@ -2,86 +2,79 @@ import { Component } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
 import { AlertController } from '@ionic/angular';
+import { SocialSharing } from '@ionic-native/social-sharing';
+import { GroceriesServiceProvider } from '../providers/groceries-service/groceries-service';
+import { InputDialogServiceProvider } from '../providers/input-dialog-service/input-dialog-service';
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss']
 })
 export class Tab1Page {
-
-  constructor(public navCtrl: NavController, public toastCtrl: ToastController, public alertCtrl: AlertController)
-   {}
+  errorMessage: string;
+  constructor(public navCtrl: NavController, public toastCtrl: ToastController, public alertCtrl: AlertController,public socialSharing: SocialSharing,public dataService:GroceriesServiceProvider,public inputDialogService: InputDialogServiceProvider )
+   {
+    dataService.dataChanged$.subscribe( (dataChanged: boolean) => {
+      this.loadItems();
+     });
+   }
   items = [
-    {
-      name: "Milk",
-      quantity: 2    
-    },
-    {
-      name: "Bread",
-      quantity: 1    
-    },
-    {
-      name: "Banana",
-      quantity: 3    
-    },
-    {
-      name: "Sugar",
-      quantity: 1    
-    },
+ 
   ];
-  addItem() {
-    console.log("Adding Item");
-    this.showAddItemPrompt();
+  ionViewDidLoad() {
+    this.loadItems();
   }
- async showAddItemPrompt() {
-    const prompt = await this.alertCtrl.create({
-      
-      message: "Please enter item...",
-      inputs: [
-        {
-          name: 'name',
-          placeholder: 'Name'
-        },
-        {
-          name: 'quantity',
-          placeholder: 'Quantity'
-        },
-      ],
-      buttons: [
-        {
-          text: 'Cancel',
-          handler: data => {
-            console.log('Cancel clicked');
-          }
-        },
-        {
-          text: 'Save',
-          handler: item => {
-            console.log('Saved clicked', item);
-            this.items.push(item);
-          }
-        }
-      ]
-    });
-    await prompt.present();
-  }
+    loadItems() {
+       this.dataService.getItems() .subscribe(
+         items => this.items = items,
+         error => this.errorMessage = error);
+    }
+       removeItem(id) {
+    this.dataService.removeItem(id);
 
- async removeItem(item) {
-    console.log("Removing Item - ", item);
-    
+
+       }
+  
+  async shareItem(item, index) {
+    console.log("Sharing Item - ", item, index);
     const toast = await this.toastCtrl.create({
-      message: 'Removing Item - ' + item.name + " ...",
+      message: 'Sharing Item - ' + index + " ...",
       duration: 3000
     });
-    
+
+   await toast.present();
+
+    let message = "Grocery Item - Name: " + item.name + " - Quantity: " + item.quantity;
+    let subject = "Shared via Groceries app";
+
+    this.socialSharing.share(message, subject).then(() => {
+      // Sharing via email is possible
+      console.log("Shared successfully!");
+    }).catch((error) => {
+      console.error("Error while sharing ", error);
+    });    
+
+  }
+ 
+  async editItem(item, index) {
+    console.log("Edit Item - ", item, index);
+    const toast = await this.toastCtrl.create({
+    message: 'Editing Item - ' + index + '',
+    duration: 3000
+    });
     await toast.present();
-    let afterfilter = [];
-for (let i = 0; i < this.items.length; i++) {
-    if (this.items[i].name != item.name) {
-        afterfilter.push(this.items[i]);
+    this.inputDialogService.showPrompt(item, index);
+    }
+    
+
+    addItem() {
+    console.log("Adding Item");
+    this.inputDialogService.showPrompt();
     }
 }
-this.items=afterfilter;
-    //this.items = this.items.filter(item => item.name === item.name);
-  }
-}
+
+
+
+        
+  
+
