@@ -3,38 +3,65 @@ import { NavController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
 import { AlertController } from '@ionic/angular';
 import { SocialSharing } from '@ionic-native/social-sharing';
-import { GroceriesServiceProvider } from '../providers/groceries-service/groceries-service';
-import { InputDialogServiceProvider } from '../providers/input-dialog-service/input-dialog-service';
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss']
 })
 export class Tab1Page {
-  errorMessage: string;
-  constructor(public navCtrl: NavController, public toastCtrl: ToastController, public alertCtrl: AlertController,public socialSharing: SocialSharing,public dataService:GroceriesServiceProvider,public inputDialogService: InputDialogServiceProvider )
-   {
-    dataService.dataChanged$.subscribe( (dataChanged: boolean) => {
-      this.loadItems();
-     });
-   }
+
+  constructor(public navCtrl: NavController, public toastCtrl: ToastController, public alertCtrl: AlertController,public socialSharing: SocialSharing)
+   {}
   items = [
  
   ];
-  ionViewDidLoad() {
-    this.loadItems();
+  addItem() {
+    console.log("Adding Item");
+    this.showAddItemPrompt();
   }
-    loadItems() {
-       this.dataService.getItems() .subscribe(
-         items => this.items = items,
-         error => this.errorMessage = error);
-    }
-       removeItem(id) {
-    this.dataService.removeItem(id);
+ async showAddItemPrompt() {
+    const prompt = await this.alertCtrl.create({
+      
+      message: "Please enter item...",
+      inputs: [
+        {
+          name: 'name',
+          placeholder: 'Name'
+        },
+        {
+          name: 'quantity',
+          placeholder: 'Quantity'
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          handler: data => {
+            console.log('Cancel clicked');
+          }
+        },
+        {
+          text: 'Save',
+          handler: item => {
+            console.log('Saved clicked', item);
+            this.items.push(item);
+          }
+        }
+      ]
+    });
+    await prompt.present();
+  }
 
+ async editItem(item, index) {
+    console.log("Edit Item - ", item, index);
+    const toast = await this.toastCtrl.create({
+      message: 'Editing Item - ' + index + " ...",
+      duration: 3000
+    });
+   await toast.present();
+   this.showEditItemPrompt(item, index);
+  }  
 
-       }
-  
   async shareItem(item, index) {
     console.log("Sharing Item - ", item, index);
     const toast = await this.toastCtrl.create({
@@ -55,26 +82,51 @@ export class Tab1Page {
     });    
 
   }
- 
-  async editItem(item, index) {
-    console.log("Edit Item - ", item, index);
-    const toast = await this.toastCtrl.create({
-    message: 'Editing Item - ' + index + '',
-    duration: 3000
+ async showEditItemPrompt(item, index) {
+    const prompt = await this.alertCtrl.create({
+      
+      message: "Please edit item...",
+      inputs: [
+        {
+          name: 'name',
+          placeholder: 'Name',
+          value: item.name
+        },
+        {
+          name: 'quantity',
+          placeholder: 'Quantity',
+          value: item.quantity
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          handler: data => {
+            console.log('Cancel clicked');
+          }
+        },
+        {
+          text: 'Save',
+          handler: item => {
+            console.log('Saved clicked', item);
+            this.items[index] = item;
+          }
+        }
+      ]
     });
-    await toast.present();
-    this.inputDialogService.showPrompt(item, index);
-    }
+   await prompt.present();
+  }  
+
+ async removeItem(item,index) {
+    console.log("Removing Item - ", item);
     
-
-    addItem() {
-    console.log("Adding Item");
-    this.inputDialogService.showPrompt();
-    }
-}
-
-
-
+    const toast = await this.toastCtrl.create({
+      message: 'Removing Item - ' + item.name + " ...",
+      duration: 3000
+    });
+    
+    await toast.present();
+    this.items.splice(index, 1);
         
-  
-
+  }
+}
