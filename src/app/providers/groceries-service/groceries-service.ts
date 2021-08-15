@@ -9,7 +9,7 @@ export class GroceriesServiceProvider {
 items: any = [];
 dataChanged$: Observable<boolean>;
 private dataChangeSubject: Subject<boolean>;
-baseURL = "http://localhost:8080";
+baseURL = "https://groceries-server-demo-ram.herokuapp.com";
 constructor(public http: HttpClient) {
     console.log('Hello GroceriesServiceProvider Provider');
 this.dataChangeSubject = new Subject<boolean>();
